@@ -30,24 +30,26 @@
 		"../src/soundjs/webAudio/WebAudioLoader.js",
 		"../src/soundjs/webAudio/WebAudioSoundInstance.js",
 		"../src/soundjs/webAudio/WebAudioPlugin.js",
-    	"../src/soundjs/htmlaudio/HTMLAudioTagPool.js",
-    	"../src/soundjs/htmlaudio/HTMLAudioSoundInstance.js",
-    	"../src/soundjs/htmlaudio/HTMLAudioPlugin.js"
+		"../src/soundjs/binarywebaudio/BinaryWebAudioSoundInstance.js",
+		"../src/soundjs/binarywebaudio/BinaryWebAudioPlugin.js",
+		"../src/soundjs/htmlaudio/HTMLAudioTagPool.js",
+		"../src/soundjs/htmlaudio/HTMLAudioSoundInstance.js",
+		"../src/soundjs/htmlaudio/HTMLAudioPlugin.js"
 	],
 
 	"flashaudioplugin_source": [
 		"../src/swfobject.js",
-        "../src/soundjs/flashaudio/FlashAudioLoader.js",
+		"../src/soundjs/flashaudio/FlashAudioLoader.js",
 		"../src/soundjs/flashaudio/FlashAudioSoundInstance.js",
 		"../src/soundjs/flashaudio/FlashAudioPlugin.js",
-        "../src/soundjs/version_flashplugin.js"
+		"../src/soundjs/version_flashplugin.js"
 	],
 
 	"cordovaaudioplugin_source": [
-        "../src/soundjs/cordovaaudio/CordovaAudioLoader.js",
+		"../src/soundjs/cordovaaudio/CordovaAudioLoader.js",
 		"../src/soundjs/cordovaaudio/CordovaAudioSoundInstance.js",
 		"../src/soundjs/cordovaaudio/CordovaAudioPlugin.js",
-        "../src/soundjs/version_cordovaplugin.js"
+		"../src/soundjs/version_cordovaplugin.js"
 	],
 
 	"docs_out_path":"./output/SoundJSDocs/"
