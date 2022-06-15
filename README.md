@@ -49,7 +49,7 @@ run locally, and the HTML audio plugin will be used instead.
 
 ### [HTMLAudioPlugin](http://createjs.com/Docs/SoundJS/classes/HTMLAudioPlugin.html)
 The fallback built-in plugin, which manages audio playback via the HTML5 <audio> tag. This will be used in instances
-where the WebAudio plugin is not available.
+where the WebAudio plugin is not available.  
 
 ### [CordovaAudioPlugin](http://createjs.com/docs/soundjs/classes/CordovaAudioPlugin.html)
 An additional plugin which will playback audio in a Cordova app and tools that utilize Cordova such as PhoneGap or Ionic.
