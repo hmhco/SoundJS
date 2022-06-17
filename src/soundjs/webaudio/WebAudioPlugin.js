@@ -126,10 +126,6 @@ this.createjs = this.createjs || {};
 	}
 	var p = createjs.extend(WebAudioPlugin, createjs.AbstractPlugin);
 
-	// TODO: deprecated
-	// p.initialize = function() {}; // searchable for devs wondering where it is. REMOVED. See docs for details.
-
-
 // Static Properties
 	var s = WebAudioPlugin;
 	/**
@@ -138,7 +134,7 @@ this.createjs = this.createjs || {};
 	 * @property _capabilities
 	 * @type {Object}
 	 * @default null
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._capabilities = null;
@@ -147,7 +143,7 @@ this.createjs = this.createjs || {};
 	 * Value to set panning model to equal power for WebAudioSoundInstance.  Can be "equalpower" or 0 depending on browser implementation.
 	 * @property _panningModel
 	 * @type {Number / String}
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._panningModel = "equalpower";
@@ -174,7 +170,7 @@ this.createjs = this.createjs || {};
 	 *
 	 * @property _scratchBuffer
 	 * @type {AudioBuffer}
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	 s._scratchBuffer = null;
@@ -189,6 +185,14 @@ this.createjs = this.createjs || {};
 	 */
 	s._unlocked = false;
 
+	/**
+	 * The default sample rate used when checking for iOS compatibility. See {{#crossLink "WebAudioPlugin/_createAudioContext"}}{{/crossLink}}.
+	 * @property DEFAULT_SAMPLE_REATE
+	 * @type {number}
+	 * @default 44100
+	 * @static
+	 */
+	s.DEFAULT_SAMPLE_RATE = 44100;
 
 // Static Public Methods
 	/**
@@ -238,40 +242,51 @@ this.createjs = this.createjs || {};
 	 * @method _isFileXHRSupported
 	 * @return {Boolean} If XHR is supported.
 	 * @since 0.4.2
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._isFileXHRSupported = function() {
-		// it's much easier to detect when something goes wrong, so let's start optimistically
-		var supported = true;
 
-		var xhr = new XMLHttpRequest();
-		try {
-			xhr.open("GET", "WebAudioPluginTest.fail", false); // loading non-existant file triggers 404 only if it could load (synchronous call)
-		} catch (error) {
-			// catch errors in cases where the onerror is passed by
-			supported = false;
-			return supported;
-		}
-		xhr.onerror = function() { supported = false; }; // cause irrelevant
-		// with security turned off, we can get empty success results, which is actually a failed read (status code 0?)
-		xhr.onload = function() { supported = this.status == 404 || (this.status == 200 || (this.status == 0 && this.response != "")); };
-		try {
-			xhr.send();
-		} catch (error) {
-			// catch errors in cases where the onerror is passed by
-			supported = false;
-		}
+		// CHANGE - Dan Zen 3/27/21
+		// The commented code was giving error locally finding test file
+		// XHR is supported as far as I can tell in all browsers now
+		// The line below will turn it off for local files as that is what the commented test seemed to do
+		// but not sure if this is needed
+		// maybe we can just set supported to true as that seems to work for sound - did not test, though
+
+		var supported = document.location.host;
+        
+		// // it's much easier to detect when something goes wrong, so let's start optimistically
+		// var supported = true;
+        
+		// var xhr = new XMLHttpRequest();
+       		// xhr.onerror = function() { supported = false; }; // cause irrelevant
+		// // with security turned off, we can get empty success results, which is actually a failed read (status code 0?)
+		// xhr.onload = function() { supported = this.status == 404 || (this.status == 200 || (this.status == 0 && this.response != "")); };
+    
+		// try {
+		// 	xhr.open("GET", "WebAudioPluginTest.fail", false); // loading non-existant file triggers 404 only if it could load (synchronous call)
+		// } catch (error) {
+		// 	// catch errors in cases where the onerror is passed by
+		// 	supported = false;
+		// 	return supported;
+		// }
+		// try {
+		// 	xhr.send();
+		// } catch (error) {
+		// 	// catch errors in cases where the onerror is passed by
+		// 	supported = true;
+		// }
 
 		return supported;
 	};
 
 	/**
-	 * Determine the capabilities of the plugin. Used internally. Please see the Sound API {{#crossLink "Sound/getCapabilities"}}{{/crossLink}}
+	 * Determine the capabilities of the plugin. Used internally. Please see the Sound API {{#crossLink "Sound/capabilities:property"}}{{/crossLink}}
 	 * method for an overview of plugin capabilities.
 	 * @method _generateCapabilities
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._generateCapabilities = function () {
 		if (s._capabilities != null) {return;}
@@ -280,13 +295,8 @@ this.createjs = this.createjs || {};
 		if (t.canPlayType == null) {return null;}
 
 		if (s.context == null) {
-			if (window.AudioContext) {
-				s.context = new AudioContext();
-			} else if (window.webkitAudioContext) {
-				s.context = new webkitAudioContext();
-			} else {
-				return null;
-			}
+			s.context = s._createAudioContext();
+			if (s.context == null) { return null; }
 		}
 		if (s._scratchBuffer == null) {
 			s._scratchBuffer = s.context.createBuffer(1, 1, 22050);
@@ -298,9 +308,9 @@ this.createjs = this.createjs || {};
 		if ("ontouchstart" in window && s.context.state != "running") {
 			s._unlock(); // When played inside of a touch event, this will enable audio on iOS immediately.
 			document.addEventListener("mousedown", s._unlock, true);
+			document.addEventListener("touchstart", s._unlock, true);
 			document.addEventListener("touchend", s._unlock, true);
 		}
-
 
 		s._capabilities = {
 			panning:true,
@@ -325,6 +335,44 @@ this.createjs = this.createjs || {};
 	};
 
 	/**
+	 * Create an audio context for the sound.
+	 *
+	 * This method handles both vendor prefixes (specifically webkit support), as well as a case on iOS where
+	 * audio played with a different sample rate may play garbled when first started. The default sample rate is
+	 * 44,100, however it can be changed using the {{#crossLink "WebAudioPlugin/DEFAULT_SAMPLE_RATE:property"}}{{/crossLink}}.
+	 * @method _createAudioContext
+	 * @return {AudioContext | webkitAudioContext}
+	 * @private
+	 * @static
+	 * @since 1.0.0
+	 */
+	s._createAudioContext = function() {
+		// Slightly modified version of https://github.com/Jam3/ios-safe-audio-context
+		// Resolves issues with first-run contexts playing garbled on iOS.
+		var AudioCtor = (window.AudioContext || window.webkitAudioContext);
+		if (AudioCtor == null) { return null; }
+		var context = new AudioCtor();
+		console.warn("The AudioContext is ready"); // Dan Zen 3/27/21
+
+		// Check if hack is necessary. Only occurs in iOS6+ devices
+		// and only when you first boot the iPhone, or play a audio/video
+		// with a different sample rate
+		if (/(iPhone|iPad)/i.test(navigator.userAgent)
+				&& context.sampleRate !== s.DEFAULT_SAMPLE_RATE) {
+			var buffer = context.createBuffer(1, 1, s.DEFAULT_SAMPLE_RATE),
+					dummy = context.createBufferSource();
+			dummy.buffer = buffer;
+			dummy.connect(context.destination);
+			dummy.start(0);
+			dummy.disconnect();
+			context.close() // dispose old context
+
+			context = new AudioCtor();
+		}
+		return context;
+	}
+
+	/**
 	 * Set up compatibility if only deprecated web audio calls are supported.
 	 * See http://www.w3.org/TR/webaudio/#DeprecationNotes
 	 * Needed so we can support new browsers that don't support deprecated calls (Firefox) as well as old browsers that
@@ -332,7 +380,7 @@ this.createjs = this.createjs || {};
 	 *
 	 * @method _compatibilitySetUp
 	 * @static
-	 * @protected
+	 * @private
 	 * @since 0.4.2
 	 */
 	s._compatibilitySetUp = function() {
@@ -370,6 +418,7 @@ this.createjs = this.createjs || {};
 		if (s.context.state == "running") {
 			document.removeEventListener("mousedown", s._unlock, true);
 			document.removeEventListener("touchend", s._unlock, true);
+			document.removeEventListener("touchstart", s._unlock, true);
 			s._unlocked = true;
 		}
 	};

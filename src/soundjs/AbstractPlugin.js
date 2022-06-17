@@ -105,20 +105,6 @@ this.createjs = this.createjs || {};
 	};
 	var p = AbstractPlugin.prototype;
 
-	/**
-	 * <strong>REMOVED</strong>. Removed in favor of using `MySuperClass_constructor`.
-	 * See {{#crossLink "Utility Methods/extend"}}{{/crossLink}} and {{#crossLink "Utility Methods/promote"}}{{/crossLink}}
-	 * for details.
-	 *
-	 * There is an inheritance tutorial distributed with EaselJS in /tutorials/Inheritance.
-	 *
-	 * @method initialize
-	 * @protected
-	 * @deprecated
-	 */
-	// p.initialize = function() {}; // searchable for devs wondering where it is.
-
-
 // Static Properties:
 // NOTE THESE PROPERTIES NEED TO BE ADDED TO EACH PLUGIN
 	/**
@@ -126,7 +112,7 @@ this.createjs = this.createjs || {};
 	 * @property _capabilities
 	 * @type {Object}
 	 * @default null
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	AbstractPlugin._capabilities = null;
@@ -241,6 +227,11 @@ this.createjs = this.createjs || {};
 			this._soundInstances[src].push(si);
 		}
 
+		// Plugins that don't have a setVolume should implement a setMasterVolume/setMasterMute
+		// So we have to check that here.
+		si.setMasterVolume && si.setMasterVolume(createjs.Sound.volume);
+		si.setMasterMute && si.setMasterMute(createjs.Sound.muted);
+
 		return si;
 	};
 
@@ -271,7 +262,7 @@ this.createjs = this.createjs || {};
 	 * Mute all sounds via the plugin.
 	 * @method setMute
 	 * @param {Boolean} value If all sound should be muted or not. Note that plugin-level muting just looks up
-	 * the mute value of Sound {{#crossLink "Sound/getMute"}}{{/crossLink}}, so this property is not used here.
+	 * the mute value of Sound {{#crossLink "Sound/muted:property"}}{{/crossLink}}, so this property is not used here.
 	 * @return {Boolean} If the mute call succeeds.
 	 */
 	p.setMute = function (value) {
@@ -289,27 +280,33 @@ this.createjs = this.createjs || {};
 	/**
 	 * Handles internal preload completion.
 	 * @method _handlePreloadComplete
+	 * @param event
 	 * @protected
 	 */
 	p._handlePreloadComplete = function (event) {
-		var src = event.target.getItem().src;
-		this._audioSources[src] = event.result;
-		for (var i = 0, l = this._soundInstances[src].length; i < l; i++) {
-			var item = this._soundInstances[src][i];
-			item.setPlaybackResource(this._audioSources[src]);
-			// ToDo consider adding play call here if playstate == playfailed
-			this._soundInstances[src] = null;
+		var src = event.target.getItem().src,
+				result = event.result,
+				instances = this._soundInstances[src];
+		this._audioSources[src] = result;
+
+		if (instances != null && instances.length > 0) {
+			for (var i=0, l=instances.length; i<l; i++) {
+				instances[i].playbackResource = result;
+				// TODO consider adding play call here if playstate == playfailed
+				// LM: SoundJS policy is not to play sounds late that previously failed, as it could play unexpectedly.
+			}
 		}
+		this._soundInstances[src] = null;
 	};
 
 	/**
-	 * Handles internal preload erros
+	 * Handles internal preload errors
 	 * @method _handlePreloadError
 	 * @param event
 	 * @protected
 	 */
 	p._handlePreloadError = function(event) {
-		//delete(this._audioSources[src]);
+		//delete(this._audioSources[src]); //LM: Not sure why this was commented out.
 	};
 
 	/**

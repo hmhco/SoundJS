@@ -207,10 +207,10 @@ this.createjs = this.createjs || {};
 
 		// Sometimes we get back 404s immediately, particularly when there is a cross origin request.  // note this does not catch in Chrome
 		try {
-			if (!this._item.values || this._item.method == createjs.AbstractLoader.GET) {
+			if (!this._item.values) {
 				this._request.send();
 			} else {
-				this._request.send(createjs.RequestUtils.formatQueryString(this._item.values));
+				this._request.send(createjs.URLUtils.formatQueryString(this._item.values));
 			}
 		} catch (error) {
 			this.dispatchEvent(new createjs.ErrorEvent("XHR_SEND", null, error));
@@ -328,6 +328,9 @@ this.createjs = this.createjs || {};
 	/**
 	 * The XHR request has completed. This is called by the XHR request directly, or by a readyStateChange that has
 	 * <code>request.readyState == 4</code>. Only the first call to this method will be processed.
+	 *
+	 * Note that This method uses {{#crossLink "_checkError"}}{{/crossLink}} to determine if the server has returned an
+	 * error code.
 	 * @method _handleLoad
 	 * @param {Object} event The XHR load event.
 	 * @private
@@ -379,16 +382,25 @@ this.createjs = this.createjs || {};
 
 // Protected
 	/**
-	 * Determine if there is an error in the current load. This checks the status of the request for problem codes. Note
-	 * that this does not check for an actual response. Currently, it only checks for error codes between 400 and 599
+	 * Determine if there is an error in the current load.
+	 * Currently this checks the status of the request for problem codes, and not actual response content:
+	 * <ul>
+	 *     <li>Status codes between 400 and 599 (HTTP error range)</li>
+	 *     <li>A status of 0, but *only when the application is running on a server*. If the application is running
+	 *     on `file:`, then it may incorrectly treat an error on local (or embedded applications) as a successful
+	 *     load.</li>
+	 * </ul>
 	 * @method _checkError
-	 * @return {int} If the request status returns an error code.
+	 * @return {Error} An error with the status code in the `message` argument.
 	 * @private
 	 */
 	p._checkError = function () {
 		var status = parseInt(this._request.status);
 		if (status >= 400 && status <= 599) {
 			return new Error(status);
+		} else if (status == 0) {
+			if ((/^https?:/).test(location.protocol)) { return new Error(0); }
+			return null; // Likely an embedded app.
 		} else {
 			return null;
 		}
@@ -444,7 +456,7 @@ this.createjs = this.createjs || {};
 	 */
 	p._createXHR = function (item) {
 		// Check for cross-domain loads. We can't fully support them, but we can try.
-		var crossdomain = createjs.RequestUtils.isCrossDomain(item);
+		var crossdomain = createjs.URLUtils.isCrossDomain(item);
 		var headers = {};
 
 		// Create the request. Fallback to whatever support we have.
@@ -483,21 +495,21 @@ this.createjs = this.createjs || {};
 		this._xhrLevel = (typeof req.responseType === "string") ? 2 : 1;
 
 		var src = null;
-		if (item.method == createjs.AbstractLoader.GET) {
-			src = createjs.RequestUtils.buildPath(item.src, item.values);
+		if (item.method == createjs.Methods.GET) {
+			src = createjs.URLUtils.buildURI(item.src, item.values);
 		} else {
 			src = item.src;
 		}
 
 		// Open the request.  Set cross-domain flags if it is supported (XHR level 1 only)
-		req.open(item.method || createjs.AbstractLoader.GET, src, true);
+		req.open(item.method || createjs.Methods.GET, src, true);
 
 		if (crossdomain && req instanceof XMLHttpRequest && this._xhrLevel == 1) {
 			headers["Origin"] = location.origin;
 		}
 
 		// To send data we need to set the Content-type header)
-		if (item.values && item.method == createjs.AbstractLoader.POST) {
+		if (item.values && item.method == createjs.Methods.POST) {
 			headers["Content-Type"] = "application/x-www-form-urlencoded";
 		}
 

@@ -47,14 +47,10 @@ this.createjs = this.createjs || {};
 	 * @protected
 	 */
 	function Loader(loadItem) {
-		this.AbstractLoader_constructor(loadItem, true, createjs.AbstractLoader.SOUND);
+		this.AbstractLoader_constructor(loadItem, true, createjs.Types.SOUND);
 
 	};
 	var p = createjs.extend(Loader, createjs.AbstractLoader);
-
-	// TODO: deprecated
-	// p.initialize = function() {}; // searchable for devs wondering where it is. REMOVED. See docs for details.
-
 
 	/**
 	 * web audio context required for decoding audio

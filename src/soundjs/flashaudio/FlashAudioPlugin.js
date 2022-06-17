@@ -176,10 +176,6 @@ this.createjs = this.createjs || {};
 	var p = createjs.extend(FlashAudioPlugin, createjs.AbstractPlugin);
 	var s = FlashAudioPlugin;
 
-	// TODO: deprecated
-	// p.initialize = function() {}; // searchable for devs wondering where it is. REMOVED. See docs for details.
-
-
 // Static properties
 	/**
 	 * Event constant for the "registerFlashID" event for cleaner code.
@@ -187,7 +183,7 @@ this.createjs = this.createjs || {};
 	 * @type {String}
 	 * @default registerflashid
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._REG_FLASHID = "registerflashid";
 
@@ -197,17 +193,17 @@ this.createjs = this.createjs || {};
 	 * @type {String}
 	 * @default unregisterflashid
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._UNREG_FLASHID = "unregisterflashid";
 
 	/**
 	 * The capabilities of the plugin. This is generated via the {{#crossLink "WebAudioPlugin/_generateCapabilities"}}{{/crossLink}}
-	 * method. Please see the Sound {{#crossLink "Sound/getCapabilities"}}{{/crossLink}} method for a list of available
+	 * method. Please see the Sound {{#crossLink "Sound/capabilities:property"}}{{/crossLink}} method for a list of available
 	 * capabilities.
 	 * @property _capabilities
 	 * @type {Object}
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._capabilities = null;
@@ -240,11 +236,11 @@ this.createjs = this.createjs || {};
 	};
 
 	/**
-	 * Determine the capabilities of the plugin. Used internally. Please see the Sound API {{#crossLink "Sound/getCapabilities"}}{{/crossLink}}
+	 * Determine the capabilities of the plugin. Used internally. Please see the Sound API {{#crossLink "Sound/capabilities:property"}}{{/crossLink}}
 	 * method for an overview of plugin capabilities.
 	 * @method _generateCapabilities
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._generateCapabilities = function () {
 		if (s._capabilities != null) {return;}
