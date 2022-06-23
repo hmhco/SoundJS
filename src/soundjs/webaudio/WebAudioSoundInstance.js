@@ -130,10 +130,6 @@ this.createjs = this.createjs || {};
 	var p = createjs.extend(WebAudioSoundInstance, createjs.AbstractSoundInstance);
 	var s = WebAudioSoundInstance;
 
-	// TODO: deprecated
-	// p.initialize = function() {}; // searchable for devs wondering where it is. REMOVED. See docs for details.
-
-
 	/**
 	 * Note this is only intended for use by advanced users.
 	 * <br />Audio context used to create nodes.  This is and needs to be the same context used by {{#crossLink "WebAudioPlugin"}}{{/crossLink}}.
@@ -220,7 +216,7 @@ this.createjs = this.createjs || {};
 
 		clearTimeout(this._soundCompleteTimeout);
 
-		this._playbackStartTime = 0;	// This is used by getPosition
+		this._playbackStartTime = 0;	// This is used by _getPosition
 	};
 
 	/**
@@ -237,7 +233,9 @@ this.createjs = this.createjs || {};
 			audioNode.disconnect(0);
 			// necessary to prevent leak on iOS Safari 7-9. will throw in almost all other
 			// browser implementations.
-			try { audioNode.buffer = s._scratchBuffer; } catch(e) {}
+			if ( createjs.BrowserDetect.isIOS ) {
+				try { audioNode.buffer = s._scratchBuffer; } catch(e) {}
+			}
 			audioNode = null;
 		}
 		return audioNode;
@@ -246,9 +244,8 @@ this.createjs = this.createjs || {};
 	p._handleSoundReady = function (event) {
 		this.gainNode.connect(s.destinationNode);  // this line can cause a memory leak.  Nodes need to be disconnected from the audioDestination or any sequence that leads to it.
 
-		var dur = this._duration * 0.001;
-		var pos = this._position * 0.001;
-		if (pos > dur) {pos = dur;}
+		var dur = this._duration * 0.001,
+			pos = Math.min(Math.max(0, this._position) * 0.001, dur);
 		this.sourceNode = this._createAndPlayAudioNode((s.context.currentTime - dur), pos);
 		this._playbackStartTime = this.sourceNode.startTime - pos;
 

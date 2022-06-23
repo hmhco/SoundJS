@@ -93,18 +93,6 @@ this.createjs = this.createjs || {};
 
 
 	// Public Properties
-		/**
-		 * This is no longer needed as we are now using object pooling for tags.
-		 *
-		 * <b>NOTE this property only exists as a limitation of HTML audio.</b>
-		 * @property defaultNumChannels
-		 * @type {Number}
-		 * @default 2
-		 * @since 0.4.0
-		 * @deprecated
-		 */
-		this.defaultNumChannels = 2;
-
 		this._capabilities = s._capabilities;
 
 		this._loaderClass = createjs.SoundLoader;
@@ -113,10 +101,6 @@ this.createjs = this.createjs || {};
 
 	var p = createjs.extend(HTMLAudioPlugin, createjs.AbstractPlugin);
 	var s = HTMLAudioPlugin;
-
-	// TODO: deprecated
-	// p.initialize = function() {}; // searchable for devs wondering where it is. REMOVED. See docs for details.
-
 
 // Static Properties
 	/**
@@ -136,7 +120,7 @@ this.createjs = this.createjs || {};
 	 * @type {String}
 	 * @default canplaythrough
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._AUDIO_READY = "canplaythrough";
 
@@ -146,7 +130,7 @@ this.createjs = this.createjs || {};
 	 * @type {String}
 	 * @default ended
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._AUDIO_ENDED = "ended";
 
@@ -156,7 +140,7 @@ this.createjs = this.createjs || {};
 	 * @type {String}
 	 * @default seeked
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._AUDIO_SEEKED = "seeked";
 
@@ -166,7 +150,7 @@ this.createjs = this.createjs || {};
 	 * @type {String}
 	 * @default stalled
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._AUDIO_STALLED = "stalled";
 
@@ -177,17 +161,17 @@ this.createjs = this.createjs || {};
 	 * @type {String}
 	 * @default timeupdate
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._TIME_UPDATE = "timeupdate";
 
 	/**
 	 * The capabilities of the plugin. This is generated via the {{#crossLink "HTMLAudioPlugin/_generateCapabilities"}}{{/crossLink}}
-	 * method. Please see the Sound {{#crossLink "Sound/getCapabilities"}}{{/crossLink}} method for an overview of all
+	 * method. Please see the Sound {{#crossLink "Sound/capabilities:property"}}{{/crossLink}} method for an overview of all
 	 * of the available properties.
 	 * @property _capabilities
 	 * @type {Object}
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._capabilities = null;
@@ -207,11 +191,11 @@ this.createjs = this.createjs || {};
 	};
 
 	/**
-	 * Determine the capabilities of the plugin. Used internally. Please see the Sound API {{#crossLink "Sound/getCapabilities"}}{{/crossLink}}
+	 * Determine the capabilities of the plugin. Used internally. Please see the Sound API {{#crossLink "Sound/capabilities:property"}}{{/crossLink}}
 	 * method for an overview of plugin capabilities.
 	 * @method _generateCapabilities
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._generateCapabilities = function () {
 		if (s._capabilities != null) {return;}
@@ -251,7 +235,7 @@ this.createjs = this.createjs || {};
 
 	p.create = function (src, startTime, duration) {
 		var si = this.AbstractPlugin_create(src, startTime, duration);
-		si.setPlaybackResource(null);
+		si.playbackResource = null;
 		return si;
 	};
 

@@ -1,8 +1,30 @@
-Version NEXT [Not yet released]
+Version 1.0.0 (September 14, 2017)
 ****************************************************************************************************
-* Changed XHR error conditions to only include 400-599. Specifically removed status=0 as an error,
+CRITICAL
+- removed deprecated properties, particularly getValue/setValue properties, in favour of .value
+	this particularly affects instance and global properties like mute, volume, pan, etc.
+- removed deprecated TYPE duplicates, notably the loader types (LoadQueue.SOUND, AbstractLoader.SOUND)
+	in place of the Types.SOUND, and request methods (LoadQueue.POST, AbstractLoader.POST) in place
+	of Methods.POST.
+- Deprecated get/set methods are now protect with an underscore (eg _setEnabled)
+	The deprecated methods and properties will still work, but will display a console warning when used.
+- Sound.play is no longer overloaded, and only takes a source and an initialization object
+	(or PlayPropsConfig) instead of a bunch of arguments. A console warning will be displayed if  the
+	old approach is used, and additional arguments will be ignored.
+- Changed version naming to use soundjs.js, instead of containing the version number
+
+*****
+- changed XHR error conditions to only include 400-599. Specifically removed status=0 as an error,
   	which affects compiled applications.
-* Fixed issue where values don't get appended to GET requests in XHRRequest
+- fixed issue where values don't get appended to GET requests in XHRRequest
+- added "touchstart" as an audio unlocking event, which seems to be the best for iOS
+- checked if preload candidates are videos, since SoundJS mistakenly handles these when they are mp4.
+- added missing Methods and Types classes from recent PreloadJS changes
+- handled case where audio duration returned < 0, resulting in a DOM Error
+- fixed issue where new instances wouldn't get the global mute/volume (thanks @PythonFanboy)
+- added a shared createjs.deprecate() method, which wraps old methods and property getter/setters to display
+	a console warning when used.
+- fixed an issue with the initial 1.0.0 build that used a deprecated property that was improperly removed
 
 
 Version 0.6.2 [November 26, 2015]

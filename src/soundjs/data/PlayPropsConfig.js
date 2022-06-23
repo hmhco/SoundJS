@@ -58,9 +58,10 @@ this.createjs = this.createjs || {};
 	 *
 	 * <h4>Example</h4>
 	 *
-	 * 	var ppc = new createjs.PlayPropsConfig().set({interrupt: createjs.Sound.INTERRUPT_ANY, loop: -1, volume: 0.5})
-	 * 	createjs.Sound.play("mySound", ppc);
-	 * 	mySoundInstance.play(ppc);
+	 * 	var props = new createjs.PlayPropsConfig().set({interrupt: createjs.Sound.INTERRUPT_ANY, loop: -1, volume: 0.5})
+	 * 	createjs.Sound.play("mySound", props);
+	 * 	// OR
+	 * 	mySoundInstance.play(props);
 	 *
 	 * @class PlayPropsConfig
 	 * @constructor
@@ -152,12 +153,14 @@ this.createjs = this.createjs || {};
 	 * @static
 	 */
 	s.create = function (value) {
-		if (value instanceof s || value instanceof Object) {
-			var ppc = new createjs.PlayPropsConfig();
-			ppc.set(value);
-			return ppc;
-		} else {
-			throw new Error("Type not recognized.");
+		if (typeof(value) === "string") {
+			// Handle the old API gracefully.
+			console && (console.warn || console.log)("Deprecated behaviour. Sound.play takes a configuration object instead of individual arguments. See docs for info.");
+			return new createjs.PlayPropsConfig().set({interrupt:value});
+		} else if (value == null || value instanceof s || value instanceof Object) {
+			return new createjs.PlayPropsConfig().set(value);
+		} else if (value == null) {
+			throw new Error("PlayProps configuration not recognized.");
 		}
 	};
 
@@ -174,7 +177,9 @@ this.createjs = this.createjs || {};
 	 * @return {PlayPropsConfig} Returns the instance the method is called on (useful for chaining calls.)
 	*/
 	p.set = function(props) {
-		for (var n in props) { this[n] = props[n]; }
+		if (props != null) {
+			for (var n in props) { this[n] = props[n]; }
+		}
 		return this;
 	};
 

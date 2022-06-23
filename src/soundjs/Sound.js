@@ -384,7 +384,7 @@ this.createjs = this.createjs || {};
 	 * @property FILE_PATTERN
 	 * @type {RegExp}
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s.FILE_PATTERN = /^(?:(\w+:)\/{2}(\w+(?:\.\w+)*\/?))?([/.]*?(?:[^?]+)?\/)?((?:[^/?]+)\.(\w+))(?:\?(\S+)?)?$/;
 
@@ -442,36 +442,76 @@ this.createjs = this.createjs || {};
 
 
 // class getter / setter properties
+
 	/**
 	 * Set the master volume of Sound. The master volume is multiplied against each sound's individual volume.  For
 	 * example, if master volume is 0.5 and a sound's volume is 0.5, the resulting volume is 0.25. To set individual
-	 * sound volume, use AbstractSoundInstance {{#crossLink "AbstractSoundInstance/volume:property"}}{{/crossLink}} instead.
+	 * sound volume, use AbstractSoundInstance {{#crossLink "AbstractSoundInstance/volume:property"}}{{/crossLink}}
+	 * instead.
 	 *
 	 * <h4>Example</h4>
 	 *
 	 *     createjs.Sound.volume = 0.5;
 	 *
-	 *
 	 * @property volume
 	 * @type {Number}
 	 * @default 1
+	 * @static
 	 * @since 0.6.1
 	 */
+
+	/**
+	 * The internal volume level. Use {{#crossLink "Sound/volume:property"}}{{/crossLink}} to adjust the master volume.
+	 * @property _masterVolume
+	 * @type {number}
+	 * @default 1
+	 * @private
+	 */
 	s._masterVolume = 1;
-	Object.defineProperty(s, "volume", {
-		get: function () {return this._masterVolume;},
-		set: function (value) {
-				if (Number(value) == null) {return false;}
-				value = Math.max(0, Math.min(1, value));
-				s._masterVolume = value;
-				if (!this.activePlugin || !this.activePlugin.setVolume || !this.activePlugin.setVolume(value)) {
-					var instances = this._instances;
-					for (var i = 0, l = instances.length; i < l; i++) {
-						instances[i].setMasterVolume(value);
-					}
-				}
+
+	/**
+	 * Use the {{#crossLink "Sound/volume:property"}}{{/crossLink}} property instead.
+	 * @method _getMasterVolume
+	 * @private
+	 * @static
+	 * @return {Number}
+	 **/
+	s._getMasterVolume = function() {
+		return this._masterVolume;
+	};
+
+	/**
+	 * Use the {{#crossLink "Sound/volume:property"}}{{/crossLink}} property instead.
+	 * @method getMasterVolume
+	 * @deprecated
+	 */
+	// Sound.getMasterVolume is @deprecated. Remove for 1.1+
+	s.getVolume = createjs.deprecate(s._getMasterVolume, "Sound.getVolume");
+	/**
+	 * Use the {{#crossLink "Sound/volume:property"}}{{/crossLink}} property instead.
+	 * @method _setMasterVolume
+	 * @static
+	 * @private
+	 **/
+	s._setMasterVolume = function(value) {
+		if (Number(value) == null) { return; }
+		value = Math.max(0, Math.min(1, value));
+		s._masterVolume = value;
+		if (!this.activePlugin || !this.activePlugin.setVolume || !this.activePlugin.setVolume(value)) {
+			var instances = this._instances;
+			for (var i = 0, l = instances.length; i < l; i++) {
+				instances[i].setMasterVolume(value);
 			}
-	});
+		}
+	};
+
+	/**
+	 * Use the {{#crossLink "Sound/volume:property"}}{{/crossLink}} property instead.
+	 * @method setVolume
+	 * @deprecated
+	 */
+	// Sound.setVolume is @deprecated. Remove for 1.1+
+	s.setVolume = createjs.deprecate(s._setMasterVolume, "Sound.setVolume");
 
 	/**
 	 * Mute/Unmute all audio. Note that muted audio still plays at 0 volume. This global mute value is maintained
@@ -486,25 +526,55 @@ this.createjs = this.createjs || {};
 	 * @property muted
 	 * @type {Boolean}
 	 * @default false
+	 * @static
 	 * @since 0.6.1
 	 */
 	s._masterMute = false;
-	// OJR references to the methods were not working, so the code had to be duplicated here
-	Object.defineProperty(s, "muted", {
-		get: function () {return this._masterMute;},
-		set: function (value) {
-				if (value == null) {return false;}
 
-				this._masterMute = value;
-				if (!this.activePlugin || !this.activePlugin.setMute || !this.activePlugin.setMute(value)) {
-					var instances = this._instances;
-					for (var i = 0, l = instances.length; i < l; i++) {
-						instances[i].setMasterMute(value);
-					}
-				}
-				return true;
+	/**
+	 * Use the {{#crossLink "Sound/muted:property"}}{{/crossLink}} property instead.
+	 * @method _getMute
+	 * @returns {Boolean}
+	 * @static
+	 * @private
+	 */
+	s._getMute = function () {
+		return this._masterMute;
+	};
+
+	/**
+	 * Use the {{#crossLink "Sound/muted:property"}}{{/crossLink}} property instead.
+	 * @method getMute
+	 * @deprecated
+	 */
+	// Sound.getMute is @deprecated. Remove for 1.1+
+	s.getMute = createjs.deprecate(s._getMute, "Sound.getMute");
+
+	/**
+	 * Use the {{#crossLink "Sound/muted:property"}}{{/crossLink}} property instead.
+	 * @method _setMute
+	 * @param {Boolean} value The muted value
+	 * @static
+	 * @private
+	 */
+	s._setMute = function (value) {
+		if (value == null) { return; }
+		this._masterMute = value;
+		if (!this.activePlugin || !this.activePlugin.setMute || !this.activePlugin.setMute(value)) {
+			var instances = this._instances;
+			for (var i = 0, l = instances.length; i < l; i++) {
+				instances[i].setMasterMute(value);
 			}
-	});
+		}
+	};
+
+	/**
+	 * Use the {{#crossLink "Sound/muted:property"}}{{/crossLink}} property instead.
+	 * @method setMute
+	 * @deprecated
+	 */
+	// Sound.setMute is @deprecated. Remove for 1.1+
+	s.setMute = createjs.deprecate(s._setMute, "Sound.setMute");
 
 	/**
 	 * Get the active plugins capabilities, which help determine if a plugin can be used in the current environment,
@@ -540,25 +610,42 @@ this.createjs = this.createjs || {};
 	 * @readOnly
 	 * @since 0.6.1
 	 */
-	Object.defineProperty(s, "capabilities", {
-		get: function () {
-					if (s.activePlugin == null) {return null;}
-					return s.activePlugin._capabilities;
-				},
-		set: function (value) { return false;}
+
+	/**
+	 * Use the {{#crossLink "Sound/capabilities:property"}}{{/crossLink}} property instead.
+	 * @returns {null}
+	 * @private
+	 */
+	s._getCapabilities = function() {
+		if (s.activePlugin == null) { return null; }
+		return s.activePlugin._capabilities;
+	};
+
+	/**
+	 * Use the {{#crossLink "Sound/capabilities:property"}}{{/crossLink}} property instead.
+	 * @method getCapabilities
+	 * @deprecated
+	 */
+	// Sound.getCapabilities is @deprecated. Remove for 1.1+
+	s.getCapabilities = createjs.deprecate(s._getCapabilities, "Sound.getCapabilities");
+
+	Object.defineProperties(s, {
+		volume: { get: s._getMasterVolume, set: s._setMasterVolume },
+		muted: { get: s._getMute, set: s._setMute },
+		capabilities: { get: s._getCapabilities }
 	});
 
 
 // Class Private properties
 	/**
-	 * Determines if the plugins have been registered. If false, the first call to play() will instantiate the default
+	 * Determines if the plugins have been registered. If false, the first call to {{#crossLink "play"}}{{/crossLink}} will instantiate the default
 	 * plugins ({{#crossLink "WebAudioPlugin"}}{{/crossLink}}, followed by {{#crossLink "HTMLAudioPlugin"}}{{/crossLink}}).
 	 * If plugins have been registered, but none are applicable, then sound playback will fail.
 	 * @property _pluginsRegistered
 	 * @type {Boolean}
 	 * @default false
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._pluginsRegistered = false;
 
@@ -567,19 +654,19 @@ this.createjs = this.createjs || {};
 	 * @property _lastID
 	 * @type {Number}
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s._lastID = 0;
 
 	/**
 	 * An array containing all currently playing instances. This allows Sound to control the volume, mute, and playback of
-	 * all instances when using static APIs like {{#crossLink "Sound/stop"}}{{/crossLink}} and {{#crossLink "Sound/setVolume"}}{{/crossLink}}.
+	 * all instances when using static APIs like {{#crossLink "Sound/stop"}}{{/crossLink}} and {{#crossLink "Sound/volume:property"}}{{/crossLink}}.
 	 * When an instance has finished playback, it gets removed via the {{#crossLink "Sound/finishedPlaying"}}{{/crossLink}}
 	 * method. If the user replays an instance, it gets added back in via the {{#crossLink "Sound/_beginPlaying"}}{{/crossLink}}
 	 * method.
 	 * @property _instances
 	 * @type {Array}
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._instances = [];
@@ -588,7 +675,7 @@ this.createjs = this.createjs || {};
 	 * An object hash storing objects with sound sources, startTime, and duration via there corresponding ID.
 	 * @property _idHash
 	 * @type {Object}
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._idHash = {};
@@ -599,7 +686,7 @@ this.createjs = this.createjs || {};
 	 * and data.
 	 * @property _preloadHash
 	 * @type {Object}
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._preloadHash = {};
@@ -609,7 +696,7 @@ this.createjs = this.createjs || {};
 	 * {{#crossLink "Sound/registerSound"}}{{/crossLink}} and {{#crossLink "Sound/registerSounds"}}{{/crossLink}}.
 	 * @property _defaultPlayPropsHash
 	 * @type {Object}
-	 * @protected
+	 * @private
 	 * @static
 	 * @since 0.6.1
 	 */
@@ -666,7 +753,7 @@ this.createjs = this.createjs || {};
 	 *      <li>types: A list of file types that are supported by Sound (currently supports "sound").</li>
 	 *      <li>extensions: A list of file extensions that are supported by Sound (see {{#crossLink "Sound/SUPPORTED_EXTENSIONS:property"}}{{/crossLink}}).</li></ul>
 	 * @static
-	 * @protected
+	 * @private
 	 */
 	s.getPreloadHandlers = function () {
 		return {
@@ -680,7 +767,7 @@ this.createjs = this.createjs || {};
 	 * Used to dispatch fileload events from internal loading.
 	 * @method _handleLoadComplete
 	 * @param event A loader event.
-	 * @protected
+	 * @private
 	 * @static
 	 * @since 0.6.0
 	 */
@@ -707,7 +794,7 @@ this.createjs = this.createjs || {};
 	/**
 	 * Used to dispatch error events from internal preloading.
 	 * @param event
-	 * @protected
+	 * @private
 	 * @since 0.6.0
 	 * @static
 	 */
@@ -813,43 +900,16 @@ this.createjs = this.createjs || {};
 	};
 
 	/**
-	 * Deprecated, please use {{#crossLink "Sound/capabilities:property"}}{{/crossLink}} instead.
-	 *
-	 * @method getCapabilities
-	 * @return {Object} An object containing the capabilities of the active plugin.
-	 * @static
-	 * @deprecated
-	 */
-	s.getCapabilities = function () {
-		if (s.activePlugin == null) {return null;}
-		return s.activePlugin._capabilities;
-	};
-
-	/**
-	 * Deprecated, please use {{#crossLink "Sound/capabilities:property"}}{{/crossLink}} instead.
-	 *
-	 * @method getCapability
-	 * @param {String} key The capability to retrieve
-	 * @return {Number|Boolean} The value of the capability.
-	 * @static
-	 * @see getCapabilities
-	 * @deprecated
-	 */
-	s.getCapability = function (key) {
-		if (s.activePlugin == null) {return null;}
-		return s.activePlugin._capabilities[key];
-	};
-
-	/**
 	 * Process manifest items from <a href="http://preloadjs.com" target="_blank">PreloadJS</a>. This method is intended
 	 * for usage by a plugin, and not for direct interaction.
 	 * @method initLoad
 	 * @param {Object} src The object to load.
 	 * @return {Object|AbstractLoader} An instance of AbstractLoader.
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s.initLoad = function (loadItem) {
+		if (loadItem.type == "video") { return true; } // Don't handle video. PreloadJS's plugin model is really aggressive.
 		return s._registerSound(loadItem);
 	};
 
@@ -1181,7 +1241,7 @@ this.createjs = this.createjs || {};
 	 * @param {String} value The path to an audio source.
 	 * @return {Object} A formatted object that can be registered with the {{#crossLink "Sound/activePlugin:property"}}{{/crossLink}}
 	 * and returned to a preloader like <a href="http://preloadjs.com" target="_blank">PreloadJS</a>.
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._parsePath = function (value) {
@@ -1211,7 +1271,7 @@ this.createjs = this.createjs || {};
 	 * @param {Object} value The paths to an audio source, indexed by extension type.
 	 * @return {Object} A formatted object that can be registered with the {{#crossLink "Sound/activePlugin:property"}}{{/crossLink}}
 	 * and returned to a preloader like <a href="http://preloadjs.com" target="_blank">PreloadJS</a>.
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._parseSrc = function (value) {
@@ -1241,11 +1301,12 @@ this.createjs = this.createjs || {};
 	 Static API.
 	 --------------- */
 	/**
-	 * Play a sound and get a {{#crossLink "AbstractSoundInstance"}}{{/crossLink}} to control. If the sound fails to play, a
-	 * AbstractSoundInstance will still be returned, and have a playState of {{#crossLink "Sound/PLAY_FAILED:property"}}{{/crossLink}}.
-	 * Note that even on sounds with failed playback, you may still be able to call AbstractSoundInstance {{#crossLink "AbstractSoundInstance/play"}}{{/crossLink}},
-	 * since the failure could be due to lack of available channels. If the src does not have a supported extension or
-	 * if there is no available plugin, a default AbstractSoundInstance will be returned which will not play any audio, but will not generate errors.
+	 * Play a sound and get a {{#crossLink "AbstractSoundInstance"}}{{/crossLink}} to control. If the sound fails to
+	 * play, an AbstractSoundInstance will still be returned, and have a playState of {{#crossLink "Sound/PLAY_FAILED:property"}}{{/crossLink}}.
+	 * Note that even on sounds with failed playback, you may still be able to call the {{#crossLink "AbstractSoundInstance/play"}}{{/crossLink}},
+	 * method, since the failure could be due to lack of available channels. If the src does not have a supported
+	 * extension or if there is no available plugin, a default AbstractSoundInstance will still be returned, which will
+	 * not play any audio, but will not generate errors.
 	 *
 	 * <h4>Example</h4>
 	 *
@@ -1257,40 +1318,19 @@ this.createjs = this.createjs || {};
 	 *      	var myInstance = createjs.Sound.play("myID", {interrupt: createjs.Sound.INTERRUPT_ANY, loop:-1});
 	 *      }
 	 *
-	 * NOTE to create an audio sprite that has not already been registered, both startTime and duration need to be set.
+	 * NOTE: To create an audio sprite that has not already been registered, both startTime and duration need to be set.
 	 * This is only when creating a new audio sprite, not when playing using the id of an already registered audio sprite.
-	 *
-	 * <b>Parameters Deprecated</b><br />
-	 * The parameters for this method are deprecated in favor of a single parameter that is an Object or {{#crossLink "PlayPropsConfig"}}{{/crossLink}}.
 	 *
 	 * @method play
 	 * @param {String} src The src or ID of the audio.
-	 * @param {String | Object} [interrupt="none"|options] <b>This parameter will be renamed playProps in the next release.</b><br />
-	 * This parameter can be an instance of {{#crossLink "PlayPropsConfig"}}{{/crossLink}} or an Object that contains any or all optional properties by name,
-	 * including: interrupt, delay, offset, loop, volume, pan, startTime, and duration (see the above code sample).
-	 * <br /><strong>OR</strong><br />
-	 * <b>Deprecated</b> How to interrupt any currently playing instances of audio with the same source,
-	 * if the maximum number of instances of the sound are already playing. Values are defined as <code>INTERRUPT_TYPE</code>
-	 * constants on the Sound class, with the default defined by {{#crossLink "Sound/defaultInterruptBehavior:property"}}{{/crossLink}}.
-	 * @param {Number} [delay=0] <b>Deprecated</b> The amount of time to delay the start of audio playback, in milliseconds.
-	 * @param {Number} [offset=0] <b>Deprecated</b> The offset from the start of the audio to begin playback, in milliseconds.
-	 * @param {Number} [loop=0] <b>Deprecated</b> How many times the audio loops when it reaches the end of playback. The default is 0 (no
-	 * loops), and -1 can be used for infinite playback.
-	 * @param {Number} [volume=1] <b>Deprecated</b> The volume of the sound, between 0 and 1. Note that the master volume is applied
-	 * against the individual volume.
-	 * @param {Number} [pan=0] <b>Deprecated</b> The left-right pan of the sound (if supported), between -1 (left) and 1 (right).
-	 * @param {Number} [startTime=null] <b>Deprecated</b> To create an audio sprite (with duration), the initial offset to start playback and loop from, in milliseconds.
-	 * @param {Number} [duration=null] <b>Deprecated</b> To create an audio sprite (with startTime), the amount of time to play the clip for, in milliseconds.
-	 * @return {AbstractSoundInstance} A {{#crossLink "AbstractSoundInstance"}}{{/crossLink}} that can be controlled after it is created.
+	 * @param {Object | PlayPropsConfig} props A PlayPropsConfig instance, or an object that contains the parameters to
+	 * play a sound. See the {{#crossLink "PlayPropsConfig"}}{{/crossLink}} for more info.
+	 * @return {AbstractSoundInstance} A {{#crossLink "AbstractSoundInstance"}}{{/crossLink}} that can be controlled
+	 * after it is created.
 	 * @static
 	 */
-	s.play = function (src, interrupt, delay, offset, loop, volume, pan, startTime, duration) {
-		var playProps;
-		if (interrupt instanceof Object || interrupt instanceof createjs.PlayPropsConfig) {
-			playProps = createjs.PlayPropsConfig.create(interrupt);
-		} else {
-			playProps = createjs.PlayPropsConfig.create({interrupt:interrupt, delay:delay, offset:offset, loop:loop, volume:volume, pan:pan, startTime:startTime, duration:duration});
-		}
+	s.play = function (src, props) {
+		var playProps = createjs.PlayPropsConfig.create(props);
 		var instance = s.createInstance(src, playProps.startTime, playProps.duration);
 		var ok = s._playInstance(instance, playProps);
 		if (!ok) {instance._playFailed();}
@@ -1326,7 +1366,7 @@ this.createjs = this.createjs || {};
 	 * @static
 	 */
 	s.createInstance = function (src, startTime, duration) {
-		if (!s.initializeDefaultPlugins()) {return new createjs.DefaultSoundInstance(src, startTime, duration);}
+		if (!s.initializeDefaultPlugins()) { return new createjs.DefaultSoundInstance(src, startTime, duration); }
 
 		var defaultPlayProps = s._defaultPlayPropsHash[src];	// for audio sprites, which create and store defaults by id
 		src = s._getSrcById(src);
@@ -1336,11 +1376,11 @@ this.createjs = this.createjs || {};
 		var instance = null;
 		if (details != null && details.src != null) {
 			SoundChannel.create(details.src);
-			if (startTime == null) {startTime = src.startTime;}
+			if (startTime == null) { startTime = src.startTime; }
 			instance = s.activePlugin.create(details.src, startTime, duration || src.duration);
 
 			defaultPlayProps = defaultPlayProps || s._defaultPlayPropsHash[details.src];
-			if(defaultPlayProps) {
+			if (defaultPlayProps) {
 				instance.applyPlayProps(defaultPlayProps);
 			}
 		} else {
@@ -1368,74 +1408,6 @@ this.createjs = this.createjs || {};
 		for (var i = instances.length; i--; ) {
 			instances[i].stop();  // NOTE stop removes instance from this._instances
 		}
-	};
-
-	/**
-	 * Deprecated, please use {{#crossLink "Sound/volume:property"}}{{/crossLink}} instead.
-	 *
-	 * @method setVolume
-	 * @param {Number} value The master volume value. The acceptable range is 0-1.
-	 * @static
-	 * @deprecated
-	 */
-	s.setVolume = function (value) {
-		if (Number(value) == null) {return false;}
-		value = Math.max(0, Math.min(1, value));
-		s._masterVolume = value;
-		if (!this.activePlugin || !this.activePlugin.setVolume || !this.activePlugin.setVolume(value)) {
-			var instances = this._instances;
-			for (var i = 0, l = instances.length; i < l; i++) {
-				instances[i].setMasterVolume(value);
-			}
-		}
-	};
-
-	/**
-	 * Deprecated, please use {{#crossLink "Sound/volume:property"}}{{/crossLink}} instead.
-	 *
-	 * @method getVolume
-	 * @return {Number} The master volume, in a range of 0-1.
-	 * @static
-	 * @deprecated
-	 */
-	s.getVolume = function () {
-		return this._masterVolume;
-	};
-
-	/**
-	 * Deprecated, please use {{#crossLink "Sound/muted:property"}}{{/crossLink}} instead.
-	 *
-	 * @method setMute
-	 * @param {Boolean} value Whether the audio should be muted or not.
-	 * @return {Boolean} If the mute was set.
-	 * @static
-	 * @since 0.4.0
-	 * @deprecated
-	 */
-	s.setMute = function (value) {
-		if (value == null) {return false;}
-
-		this._masterMute = value;
-		if (!this.activePlugin || !this.activePlugin.setMute || !this.activePlugin.setMute(value)) {
-			var instances = this._instances;
-			for (var i = 0, l = instances.length; i < l; i++) {
-				instances[i].setMasterMute(value);
-			}
-		}
-		return true;
-	};
-
-	/**
-	 * Deprecated, please use {{#crossLink "Sound/muted:property"}}{{/crossLink}} instead.
-	 *
-	 * @method getMute
-	 * @return {Boolean} The mute value of Sound.
-	 * @static
-	 * @since 0.4.0
-	 * @deprecated
-	 */
-	s.getMute = function () {
-		return this._masterMute;
 	};
 
 	/**
@@ -1478,14 +1450,14 @@ this.createjs = this.createjs || {};
 	 * @param {PlayPropsConfig} playProps A PlayPropsConfig object.
 	 * @return {Boolean} If the sound can start playing. Sounds that fail immediately will return false. Sounds that
 	 * have a delay will return true, but may still fail to play.
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._playInstance = function (instance, playProps) {
 		var defaultPlayProps = s._defaultPlayPropsHash[instance.src] || {};
 		if (playProps.interrupt == null) {playProps.interrupt = defaultPlayProps.interrupt || s.defaultInterruptBehavior};
 		if (playProps.delay == null) {playProps.delay = defaultPlayProps.delay || 0;}
-		if (playProps.offset == null) {playProps.offset = instance.getPosition();}
+		if (playProps.offset == null) {playProps.offset = instance.position;}
 		if (playProps.loop == null) {playProps.loop = instance.loop;}
 		if (playProps.volume == null) {playProps.volume = instance.volume;}
 		if (playProps.pan == null) {playProps.pan = instance.pan;}
@@ -1514,7 +1486,7 @@ this.createjs = this.createjs || {};
 	 * @param {PlayPropsConfig} playProps A PlayPropsConfig object.
 	 * @return {Boolean} If the sound can start playing. If there are no available channels, or the instance fails to
 	 * start, this will return false.
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._beginPlaying = function (instance, playProps) {
@@ -1536,7 +1508,7 @@ this.createjs = this.createjs || {};
 	 * @method _getSrcById
 	 * @param {String} value The ID the sound was registered with.
 	 * @return {String} The source of the sound if it has been registered with this ID or the value that was passed in.
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._getSrcById = function (value) {
@@ -1549,7 +1521,7 @@ this.createjs = this.createjs || {};
 	 * instances themselves.
 	 * @method _playFinished
 	 * @param {AbstractSoundInstance} instance The instance that finished playback.
-	 * @protected
+	 * @private
 	 * @static
 	 */
 	s._playFinished = function (instance) {
@@ -1679,20 +1651,6 @@ this.createjs = this.createjs || {};
 
 	var p = SoundChannel.prototype;
 	p.constructor = SoundChannel;
-
-	/**
-	 * <strong>REMOVED</strong>. Removed in favor of using `MySuperClass_constructor`.
-	 * See {{#crossLink "Utility Methods/extend"}}{{/crossLink}} and {{#crossLink "Utility Methods/promote"}}{{/crossLink}}
-	 * for details.
-	 *
-	 * There is an inheritance tutorial distributed with EaselJS in /tutorials/Inheritance.
-	 *
-	 * @method initialize
-	 * @protected
-	 * @deprecated
-	 */
-	// p.initialize = function() {}; // searchable for devs wondering where it is.
-
 
 	/**
 	 * The source of the channel.
@@ -1827,8 +1785,8 @@ this.createjs = this.createjs || {};
 			}
 
 			// Audio is a better candidate than the current target, according to playhead
-			if ((interrupt == Sound.INTERRUPT_EARLY && target.getPosition() < replacement.getPosition()) ||
-				(interrupt == Sound.INTERRUPT_LATE && target.getPosition() > replacement.getPosition())) {
+			if ((interrupt == Sound.INTERRUPT_EARLY && target.position < replacement.position) ||
+				(interrupt == Sound.INTERRUPT_LATE && target.position > replacement.position)) {
 					replacement = target;
 			}
 		}
